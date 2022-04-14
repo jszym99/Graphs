@@ -8,8 +8,12 @@
 
 
 class GraphInterface {
+private:
+    //virtual int minDist(int *dist, bool *vis) = 0;
 public:
-    virtual void printData() const = 0;
+    //GraphInterface () {}
+    //virtual void printData() {}
+    //virtual void dijkstra(int source) {}
 };
 
 

@@ -30,7 +30,15 @@ void AdjList::addNode(int start, int end, int weight) {
     last->nextNode = newNode;
 }
 
-void AdjList::printData() const {
+int AdjList::minDist(int *dist, bool *vis) {
+
+}
+
+void AdjList::dijkstra(int source) {
+
+}
+
+void AdjList::printData() {
     std::cout << std::setw(SPACING) << std::fixed << "Org" << std::setw(SPACING) << "Dest" << std::setw(SPACING) << "Wgt" << std::endl;
     node *last = head;
     while (last != nullptr) {

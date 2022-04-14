@@ -18,10 +18,13 @@ struct node{
 class AdjList : public GraphInterface {
 private:
     node * head;
+
+    int minDist(int dist[], bool vis[]);
 public:
     AdjList(int start, int end, int weight);
     void addNode(int start, int end, int weight);
-    void printData() const override;
+    void printData();
+    void dijkstra(int source);
 };
 
 
