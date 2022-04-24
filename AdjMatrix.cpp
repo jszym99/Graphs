@@ -10,15 +10,32 @@
 AdjMatrix::AdjMatrix(const int *array, int arraySize) {
     size = arraySize;
     matrix = new int[arraySize * arraySize];
-    for (int i = 0; i < arraySize; i++) {
-        for (int j = 0; j < arraySize; j++) {
-            matrix[i * arraySize + j] = array[i * arraySize + j];
+    for (int row = 0; row < arraySize; row++) {
+        for (int col = 0; col < arraySize; col++) {
+            matrix[row * arraySize + col] = array[row * arraySize + col];
         }
     }
 }
-
+AdjMatrix::AdjMatrix(const int *array, int edges, int vertices) {
+    size = vertices;
+    matrix = new int [vertices*vertices];
+    // Initialize with zeros
+    for (int row = 0; row < vertices; row++) {
+        for (int col = 0; col < vertices; col++) {
+            matrix[row * vertices + col] = 0;
+        }
+    }
+    // Copy data
+    for(int node = 0; node < edges; node++){
+        int start = array[3*node];
+        int end = array[3*node+1];
+        int weight  = array[3*node+2];
+        matrix[start*vertices+end] = weight;
+        matrix[end*vertices+start] = weight;
+    }
+}
 //! Function finding path by reverse iteration
-int AdjMatrix::findPath(int *path, const int * prev, int source, int target) {
+int AdjMatrix::findPath(int *path, const int * prev, int source, int target) const {
     int count = 0;
     int u = target;
     path[count++] = target;
@@ -111,10 +128,10 @@ void AdjMatrix::printResultsToFile(const int *prev, const int *dist, int source,
 }
 
 //! Dijkstra shortest path finding
-void AdjMatrix::dijkstra(int source) {
-    int *dist = new int [size]; // List containing distances from source vertex
-    int *prev = new int [size];
-    bool *visited = new bool[size]; // List containing information about visited vertices
+void AdjMatrix::dijkstra(int source) const {
+    int *dist = new int [size]; // List of distances from source vertex
+    int *prev = new int [size]; // List of preceding vertices
+    bool *visited = new bool[size]; // List of visited vertices
 
     // Fill dist with INF and visited with false
     for (int i = 0; i < size; i++) {
@@ -146,10 +163,10 @@ void AdjMatrix::dijkstra(int source) {
 
     }
 
-    // Print results
-    printResults(prev,dist,source);
+    // Print results (uncomment to print)
+    //printResults(prev,dist,source);
     // Save results
-    printResultsToFile(prev,dist,source,"results.txt");
+    printResultsToFile(prev,dist,source,"matrixResults.txt");
 
     // Delete pointers
     delete [] dist;
@@ -158,10 +175,10 @@ void AdjMatrix::dijkstra(int source) {
 }
 
 //! Function printing matrix
-void AdjMatrix::printData() {
+void AdjMatrix::printData() const {
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
-                std::cout << std::setw(SPACING) << std::fixed << matrix[i * size + j];
+                std::cout << std::setw(SPACING) << std::fixed << matrix[i * size + j] << ", ";
         }
         std::cout << std::endl;
     }

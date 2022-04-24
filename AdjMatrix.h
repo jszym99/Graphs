@@ -3,9 +3,6 @@
 //
 
 #ifndef GRAPHS_ADJMATRIX_H
-#include <iostream>
-#include <iomanip>
-#include <fstream>
 #include "GraphInterface.h"
 #define GRAPHS_ADJMATRIX_H
 
@@ -15,23 +12,25 @@ private:
     int size; // Size of the square matrix
 
     //! Function finding path by reverse iteration
-    static int findPath(int * path, const int * prev, int source, int target);
+    int findPath(int * path, const int * prev, int source, int target) const override;
     //! Function finding index of nearest vertex
-    int minDist(const int *dist, const bool *vis) const;
+    int minDist(const int *dist, const bool *vis) const override;
     //! Function prints results of dijkstra's shortest path finding
-    void printResults(const int * prev, const int * dist, int source) const;
+    void printResults(const int * prev, const int * dist, int source) const override;
     //! Function prints results of dijkstra's shortest path finding to a file
-    void printResultsToFile(const int * prev, const int * dist, int source, const std::string& fileName) const;
+    void printResultsToFile(const int * prev, const int * dist, int source, const std::string& fileName) const override;
 public:
-    //! Constructor
+    //! Constructor taking matrix as input data
     AdjMatrix(const int *array, int arraySize);
-    //! Destructor
-    ~AdjMatrix() {delete [] matrix;}
+    //! Constructor taking list of edges as an array
+    AdjMatrix(const int *array, int edges, int vertices);
+    //! Destructor freeing allocated memory
+    ~AdjMatrix() override {delete [] matrix;}
 
     //! Function printing matrix
-    void printData();
+    void printData() const override;
     //! Dijkstra shortest path finding
-    void dijkstra(int source);
+    void dijkstra(int source) const override;
 };
 
 #endif //GRAPHS_ADJMATRIX_H

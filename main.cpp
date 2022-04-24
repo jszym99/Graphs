@@ -1,108 +1,8 @@
 #include <iostream>
-#include <random>
+#include <chrono>
 #include "AdjMatrix.h"
 #include "AdjList.h"
-#include "GraphInterface.h"
-
-void graphToFile(int *graph, int size, const std::string& fileName= ""){
-    // File handle
-    std::ofstream file;
-    // Open file
-    file.open("../" + fileName, std::ios_base::app);
-
-    // Utilities for random number generation
-    std::random_device rd;
-    std::mt19937 gen(123); //Seeded for testing
-    std::uniform_int_distribution<> randVer(0, size - 1); // Random vertex
-
-    // Count edges
-    int numEdges = 0;
-    for(int i = 0; i < size; i++){
-        for(int j = 0; j <= i; j++){
-            if(graph[i*size+j] != 0){
-                numEdges++;
-            }
-        }
-    }
-
-    int start = randVer(gen);
-
-    std::cout << numEdges << "\t" << size << "\t" << start << "\n\n";
-    for(int row = 0; row < size; row++){
-        for(int col = row; col < size; col++){
-            if(graph[row*size+col] != 0){
-                std::cout << row << "\t" << col << "\t" << graph[row*size+col] << std::endl;
-            }
-        }
-    }
-
-}
-
-
-void printMatrix(int *array, int size) {
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-            std::cout << std::setw(5) << std::fixed << array[i * size + j] << ", ";
-        }
-        std::cout << std::endl;
-    }
-}
-
-void genGraph(int *graph,int size, int density = 100) {
-    if (density < 0 || density > 100) {
-        std::cerr << "Wrong density!" << std::endl;
-        return;
-    }
-
-    // Range for random distance generation
-    int min = 1;
-    int max = 10;
-
-    // Utilities for random number generation
-    std::random_device rd;
-    std::mt19937 gen(123); //Seeded for testing
-    std::uniform_int_distribution<> randVer(0, size - 1); // Random vertex
-    std::uniform_int_distribution<> randWeight(min, max); // Random weight
-
-    int maxEdge = size * (size - 1) / 2; // Max number of edges
-    int numEdge = (int) round(maxEdge * density / 100.0); // Number of edges to create for chosen density
-    int remEdge = numEdge; // Number of edges left to create
-
-
-    // Fill matrix with zeros
-    for (int i = 0; i < size * size; i++) {
-        graph[i] = 0;
-    }
-
-    // Create at one edge for each vertex
-    for(int vertex = 0; vertex < size; vertex++){
-        // Draw random target vertex
-        int randomVertex = randVer(gen);
-        // As long as it's not itself
-        while(randomVertex == vertex || graph[vertex * size + randomVertex] != 0 || graph[randomVertex * size + vertex] != 0){
-            randomVertex = randVer(gen);
-        }
-        // Assign random weight
-        graph[randomVertex * size + vertex] = randWeight(gen);
-        graph[vertex * size + randomVertex] = graph[randomVertex * size + vertex];
-        // Decrease number of remaining edges
-        remEdge--;
-        //std::cout << vertex << " " << randomVertex << " " << graph[vertex*size+randomVertex] << std::endl;
-    }
-
-    // Generate remaining edges
-    while(remEdge > 0){
-        int dest = randVer(gen);
-        int org = randVer(gen);
-        // Destination and origin are different vertices, and this edge doesn't exist yet
-        if(dest != org && graph[org * size + dest] == 0 && graph[dest * size + org] == 0){
-            graph[dest * size + org] = randWeight(gen);
-            graph[org * size + dest] = graph[dest * size + org];
-            remEdge--;
-        }
-
-    }
-}
+#include "Utilities.h"
 
 
 int main() {
@@ -125,10 +25,116 @@ int main() {
 
     delete[] arr;
 
-    int graphSize = 8;
-    int *newGraph = new int[graphSize * graphSize];
-    genGraph(newGraph, graphSize, 50);
-    printMatrix(newGraph, graphSize);
-    graphToFile(newGraph, graphSize);
-    delete [] newGraph;
+    unsigned int matrixMemorySize = 0;
+    unsigned int listMemorySize = 0;
+    unsigned int instances = 1;
+    unsigned int matrixTime = 0;
+    unsigned int listTime = 0;
+    //auto matrixTime;
+    //auto listTime;
+
+    // Data file generation
+    //genDataFile();
+
+    std::string fileName = "data.txt";
+
+    // File handle
+    std::ifstream file;
+    // Open file
+    file.open("../" + fileName);
+    if (!file) {
+        std::cerr << "Error: file couldn't be opened" << std::endl;
+        return 0;
+    }
+
+    std::string line; // String for current line
+    int num; // Temporary variable for numbers
+
+    int header[3]; // Temporarily holds header info (edges, vertices, start vertex)
+
+    while (std::getline(file, line)) {
+        int headCount = 0; // Increments for header
+
+        // Line contains data
+        if (!line.empty()) {
+            std::stringstream ss(line);
+            // Read header from string skipping whitespaces
+            while (ss >> num) {
+                header[headCount++] = num;
+            }
+            //std::cout << header[0] << " " << header[1] << " " << header[2] << " " << std::endl;
+
+            int *array = new int[3 * header[0]];
+            int count = 0;
+
+            // Read data for current data set
+            for (int node = 0; node < header[0]; node++) {
+                // Read next line
+                std::getline(file, line);
+                // Line contains data
+                if (!line.empty()) {
+                    std::stringstream ss2(line);
+                    while (ss2 >> num) {
+                        array[count++] = num;
+                        //std::cout << num << " ";
+                    }
+                    //std::cout << std::endl;
+                } else
+                    node--;
+
+                //std::cout << array[3*node+0] << " " << array[3*node+1] << " " << array[3*node+2] << " ";
+            }
+            //std::cout << std::endl;
+
+            // Create adjacency matrix
+            AdjMatrix matrixData(array, header[0], header[1]);
+            AdjList listData(array, header[0], header[1]);
+            //matrixData.printData();
+            //listData.printData();
+            //std::cout << std::endl;
+
+            // Start measuring time for matrix
+            auto start = std::chrono::high_resolution_clock::now();
+            matrixData.dijkstra(header[2]); // Find paths
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+            matrixTime += duration.count(); // Add time
+
+            // Start measuring time for list
+            start = std::chrono::high_resolution_clock::now();
+            listData.dijkstra(header[2]); //Find paths
+            stop = std::chrono::high_resolution_clock::now();
+            duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+            listTime += duration.count(); // Add time
+
+            // Calculate memory usage
+            matrixMemorySize = sizeof(AdjMatrix) + sizeof(int[header[1] * header[1]]);
+            listMemorySize = sizeof(AdjList) + header[0] * sizeof(node);
+
+            //std::cout << "Size: " << listData.graphSize() << std::endl;
+
+            // Free memory
+            delete[] array;
+            if (instances == 1) {
+                std::cout  << "M size,\t"  << "L size,\t" << "M time,\t" << "L time,\t" << std::endl;
+            }
+            if (instances % 100 == 0) {
+                // Printing for testing
+                //std::cout << "Size of AdjMatrix object: " << matrixMemorySize << "\tSize of AdjList object: " << listMemorySize << std::endl;
+                //std::cout << "Matrix average time: " << matrixTime/100 << "\tList average time: " << listTime/100 << std::endl;
+
+                // Printing excel-formated data
+                std::cout << matrixMemorySize << ",\t" << listMemorySize << ",\t"
+                          << matrixTime / 100 << ",\t" << listTime / 100 << ",\t" << std::endl;
+
+                // Clear time variables
+                matrixTime = 0;
+                listTime = 0;
+            }
+            instances++;
+        }
+    }
+
+    file.close();
+
 }

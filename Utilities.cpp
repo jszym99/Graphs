@@ -30,12 +30,10 @@ void graphToFile(int *graph, int size, const std::string &fileName) {
     // Assign random start vertex
     int start = randVer(gen);
 
-    //std::cout << numEdges << "\t" << size << "\t" << start << std::endl;
     file << numEdges << "\t\t" << size << "\t\t" << start << "\n\n";
     for (int row = 0; row < size; row++) {
         for (int col = row; col < size; col++) {
             if (graph[row * size + col] != 0) {
-                //std::cout << row << "\t" << col << "\t" << graph[row * size + col] << std::endl;
                 file << row << "\t" << col << "\t" << graph[row * size + col] << std::endl;
             }
         }
@@ -75,6 +73,13 @@ void genGraph(int *graph, int size, int density) {
     int numEdge = (int) round(maxEdge * density / 100.0); // Number of edges to create for chosen density
     int remEdge = numEdge; // Number of edges left to create
 
+    bool connectedVertex[size];
+
+    // Initialize list with false
+    for(int i = 1; i < size;i++){
+        connectedVertex[i] = false;
+    }
+    connectedVertex[0] = true;
 
     // Fill matrix with zeros
     for (int i = 0; i < size * size; i++) {
@@ -86,15 +91,15 @@ void genGraph(int *graph, int size, int density) {
         // Draw random target vertex
         int randomVertex = randVer(gen);
         // As long as it's not itself
-        while (randomVertex == vertex || graph[vertex * size + randomVertex] != 0) {
+        while (randomVertex == vertex || graph[vertex * size + randomVertex] != 0 || (!connectedVertex[randomVertex] && !connectedVertex[vertex])) {
             randomVertex = randVer(gen);
         }
         // Assign random weight
         graph[randomVertex * size + vertex] = randWeight(gen);
         graph[vertex * size + randomVertex] = graph[randomVertex * size + vertex];
+        connectedVertex[randomVertex] = true;
         // Decrease number of remaining edges
         remEdge--;
-        //std::cout << vertex << " " << randomVertex << " " << graph[vertex*size+randomVertex] << std::endl;
     }
 
     // Generate remaining edges
@@ -113,11 +118,12 @@ void genGraph(int *graph, int size, int density) {
 //! Function generates file with data sets
 void genDataFile() {
     std::string fileName = "data.txt"; // Name of data file
-    int graphSize[] = {8, 16, 24, 32, 40}; // Numbers of vertices in graph
-    int graphDensity[] = {25, 50, 100}; // Graph densities
+    int graphSize[] = {16, 24, 32, 40, 48}; // Numbers of vertices in graph
+    int graphDensity[] = {25, 50, 75, 100}; // Graph densities
 
+    int nElements = 0;
 
-    // For each graph size
+    // For each graph graphSize
     for (int size: graphSize) {
         // Allocate space for a graph
         int *graph = new int[size * size];
@@ -130,11 +136,13 @@ void genDataFile() {
             for (int series = 0; series < 100; series++) {
                 // Generate new random graph
                 genGraph(graph, size, density);
-                //printMatrix(graph,size);
                 // Append graph to file
                 graphToFile(graph, size, fileName);
+                nElements++;
             }
         }
         delete[] graph;
     }
+    std::cout << "Number of generated instances: " << nElements << std::endl;
 }
+
